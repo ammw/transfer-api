@@ -16,9 +16,11 @@ public class ServerConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     private final AccountService accountService;
+    private final TransferService transferService;
 
-    public ServerConfiguration(AccountService accountService) {
+    public ServerConfiguration(AccountService accountService, TransferService transferService) {
         this.accountService = accountService;
+        this.transferService = transferService;
     }
 
     public static void stop() {
@@ -35,6 +37,8 @@ public class ServerConfiguration {
         get("/accounts", (rq, rs) -> respondWithJson(rq, rs, accountService::getAccounts));
         post("/accounts", (rq, rs) -> respondWithJson(rq, rs, () -> accountService.createAccount()));
         get("/accounts/:id", (rq, rs) -> respondWithJson(rq, rs, () -> accountService.getAccount(UUID.fromString(rq.params("id")))));
+        get("/accounts/:id/history", (rq, rs) -> respondWithJson(rq, rs, () -> transferService.getHistory(UUID.fromString(rq.params("id")))));
+        put("/transfer", (rq, rs) -> respondWithJson(rq, rs, () -> transferService.transfer(UUID.randomUUID(), UUID.randomUUID(), 200)));
 
         LOGGER.info("Server startup finished on port {}", port);
     }
