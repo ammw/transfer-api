@@ -1,4 +1,4 @@
-package eu.ammw.transfer.rest;
+package eu.ammw.transfer.domain;
 
 import eu.ammw.transfer.model.Transfer;
 import org.slf4j.Logger;
@@ -17,12 +17,12 @@ public class TransferService {
         this.accountService = accountService;
     }
 
-    Transfer transfer(UUID from, UUID to, long amount) {
+    public Transfer transfer(UUID from, UUID to, long amount) {
         LOGGER.info("Transferred {} from {} to {}", amount, from, to);
         return new Transfer(from, to, amount);
     }
 
-    List<Transfer> getHistory(UUID id) {
+    public List<Transfer> getHistory(UUID id) {
         LOGGER.info("Found {} transfers for {}", 2, id);
         return Arrays.asList(new Transfer(id, UUID.randomUUID(), 5000L),
                 new Transfer(UUID.randomUUID(), id, 3000L));

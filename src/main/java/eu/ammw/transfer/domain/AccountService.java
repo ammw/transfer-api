@@ -1,4 +1,4 @@
-package eu.ammw.transfer.rest;
+package eu.ammw.transfer.domain;
 
 import eu.ammw.transfer.model.Account;
 import org.slf4j.Logger;
@@ -11,19 +11,19 @@ import java.util.UUID;
 public class AccountService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
-    List<Account> getAccounts() {
+    public List<Account> getAccounts() {
         Account account1 = new Account(UUID.fromString("00000000-1111-2222-3333-444444444444"));
         Account account2 = new Account(UUID.fromString("99999999-1111-2222-3333-444444444444"));
         LOGGER.info("Found 2 accounts");
         return Arrays.asList(account1, account2);
     }
 
-    Account getAccount(UUID id) {
+    public Account getAccount(UUID id) {
         LOGGER.info("Found account {}", id);
         return new Account(id);
     }
 
-    Account createAccount() {
+    public Account createAccount() {
         Account account = new Account(null);
         LOGGER.info("Created account {}", account.getId());
         return account;

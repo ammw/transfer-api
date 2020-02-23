@@ -1,4 +1,4 @@
-package eu.ammw.transfer.rest;
+package eu.ammw.transfer.domain;
 
 import eu.ammw.transfer.model.Account;
 import org.junit.jupiter.api.Test;

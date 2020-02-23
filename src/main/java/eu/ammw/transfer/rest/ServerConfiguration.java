@@ -2,12 +2,10 @@ package eu.ammw.transfer.rest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Request;
-import spark.Response;
 import spark.Spark;
 
-import java.util.UUID;
-import java.util.function.Supplier;
+import java.util.Arrays;
+import java.util.List;
 
 import static spark.Spark.*;
 
@@ -15,12 +13,10 @@ public class ServerConfiguration {
     private static final String JSON_TYPE = "application/json";
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
-    private final AccountService accountService;
-    private final TransferService transferService;
+    private final List<Controller> controllers;
 
-    public ServerConfiguration(AccountService accountService, TransferService transferService) {
-        this.accountService = accountService;
-        this.transferService = transferService;
+    public ServerConfiguration(Controller... controllers) {
+        this.controllers = Arrays.asList(controllers);
     }
 
     public static void stop() {
@@ -33,18 +29,8 @@ public class ServerConfiguration {
         defaultResponseTransformer(new JsonTransformer());
 
         get("/health", (rq, rs) -> "OK");
-
-        get("/accounts", (rq, rs) -> respondWithJson(rq, rs, accountService::getAccounts));
-        post("/accounts", (rq, rs) -> respondWithJson(rq, rs, () -> accountService.createAccount()));
-        get("/accounts/:id", (rq, rs) -> respondWithJson(rq, rs, () -> accountService.getAccount(UUID.fromString(rq.params("id")))));
-        get("/accounts/:id/history", (rq, rs) -> respondWithJson(rq, rs, () -> transferService.getHistory(UUID.fromString(rq.params("id")))));
-        put("/transfer", (rq, rs) -> respondWithJson(rq, rs, () -> transferService.transfer(UUID.randomUUID(), UUID.randomUUID(), 200)));
+        controllers.forEach(Controller::registerEndpoints);
 
         LOGGER.info("Server startup finished on port {}", port);
-    }
-
-    private Object respondWithJson(Request request, Response response, Supplier<?> function) {
-        response.type(JSON_TYPE);
-        return function.get();
     }
 }
