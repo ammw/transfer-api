@@ -1,6 +1,7 @@
 package eu.ammw.transfer.rest;
 
 import eu.ammw.transfer.domain.AccountService;
+import eu.ammw.transfer.model.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
@@ -45,8 +46,14 @@ public class AccountController implements Controller {
     Object getAccount(Request request, Response response) {
         try {
             UUID id = UUID.fromString(request.params("id"));
+            Account account = accountService.getAccount(id);
+            if (account == null) {
+                response.type(TEXT_TYPE);
+                response.status(404);
+                return "Not Found";
+            }
             response.type(JSON_TYPE);
-            return accountService.getAccount(id);
+            return account;
         } catch (IllegalArgumentException e) {
             LOGGER.error("Could not retrieve account", e);
             response.type(TEXT_TYPE);

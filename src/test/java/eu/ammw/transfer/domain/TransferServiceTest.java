@@ -3,6 +3,7 @@ package eu.ammw.transfer.domain;
 import eu.ammw.transfer.model.Transfer;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,15 +18,16 @@ class TransferServiceTest {
     void shouldTransfer() {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
+        BigDecimal amount = BigDecimal.valueOf(123);
 
         // WHEN
-        Transfer result = transferService.transfer(TEST_UUID, anotherId, 123L);
+        Transfer result = transferService.transfer(TEST_UUID, anotherId, amount);
 
         // THEN
         assertThat(result.getId()).isNotNull();
         assertThat(result)
                 .extracting(Transfer::getFrom, Transfer::getTo, Transfer::getAmount)
-                .containsExactly(TEST_UUID, anotherId, 123L);
+                .containsExactly(TEST_UUID, anotherId, amount);
     }
 
     @Test

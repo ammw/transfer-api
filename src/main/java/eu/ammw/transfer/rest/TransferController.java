@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static spark.Spark.get;
@@ -34,7 +35,7 @@ public class TransferController implements Controller {
     Object transfer(Request request, Response response) {
         // TODO read body
         response.type(JSON_TYPE);
-        return transferService.transfer(UUID.randomUUID(), UUID.randomUUID(), 200);
+        return transferService.transfer(UUID.randomUUID(), UUID.randomUUID(), BigDecimal.valueOf(200));
     }
 
     Object getHistory(Request request, Response response) {

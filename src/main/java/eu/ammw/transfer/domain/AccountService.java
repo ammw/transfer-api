@@ -1,30 +1,35 @@
 package eu.ammw.transfer.domain;
 
+import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.model.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 public class AccountService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
+    private final DataSource dataSource;
+
+    public AccountService(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     public List<Account> getAccounts() {
-        Account account1 = new Account(UUID.fromString("00000000-1111-2222-3333-444444444444"));
-        Account account2 = new Account(UUID.fromString("99999999-1111-2222-3333-444444444444"));
-        LOGGER.info("Found 2 accounts");
-        return Arrays.asList(account1, account2);
+        return dataSource.getAllAccounts();
     }
 
     public Account getAccount(UUID id) {
-        LOGGER.info("Found account {}", id);
-        return new Account(id);
+        return dataSource.getAccount(id).orElse(null);
     }
 
     public Account createAccount() {
-        Account account = new Account(null);
+        Account account = new Account(null, "Test" + System.currentTimeMillis(),
+                BigDecimal.valueOf(System.currentTimeMillis() % 10000).divide(BigDecimal.valueOf(100)));
+        dataSource.createAccount(account);
         LOGGER.info("Created account {}", account.getId());
         return account;
     }

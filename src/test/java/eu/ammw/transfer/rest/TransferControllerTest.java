@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import spark.Request;
 import spark.Response;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +41,7 @@ class TransferControllerTest {
     void shouldDoTransfer() {
         // GIVEN
         Transfer expected = mock(Transfer.class);
-        when(transferService.transfer(any(UUID.class), any(UUID.class), anyLong())).thenReturn(expected);
+        when(transferService.transfer(any(UUID.class), any(UUID.class), any(BigDecimal.class))).thenReturn(expected);
 
         // WHEN
         Object result = transferController.transfer(request, response);
