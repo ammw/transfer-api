@@ -32,7 +32,7 @@ public class TransferController implements Controller {
 
     @Override
     public void registerEndpoints() {
-        post("/transfer", this::transfer);
+        post("/accounts/:id/transfer", this::transfer);
         post("/accounts/:id/deposit", this::deposit);
         post("/accounts/:id/withdraw", this::withdraw);
         get("/accounts/:id/history", this::getHistory);
@@ -41,9 +41,10 @@ public class TransferController implements Controller {
     Object transfer(Request request, Response response) {
         try {
             Transfer transfer = gson.fromJson(request.body(), Transfer.class);
+            UUID id = UUID.fromString(request.params("id"));
             response.type(JSON_TYPE);
-            return transferService.transfer(transfer.getFrom(), transfer.getTo(), transfer.getAmount());
-        } catch (JsonSyntaxException | NumberFormatException | NullPointerException e) {
+            return transferService.transfer(id, transfer.getTo(), transfer.getAmount());
+        } catch (IllegalArgumentException | JsonSyntaxException | NullPointerException e) {
             LOGGER.warn(e.getMessage());
             response.type(TEXT_TYPE);
             response.status(400);

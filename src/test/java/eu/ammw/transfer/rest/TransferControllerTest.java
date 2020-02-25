@@ -45,7 +45,8 @@ class TransferControllerTest {
         UUID to = UUID.randomUUID();
         Transfer expected = new Transfer(from, to, BigDecimal.TEN);
         when(transferService.transfer(from, to, BigDecimal.TEN)).thenReturn(expected);
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": 10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
@@ -56,7 +57,25 @@ class TransferControllerTest {
     }
 
     @Test
+    void shouldTransferReturnBadRequestWhenNoValidSourceId() {
+        // GIVEN
+        when(request.params("id")).thenReturn("John");
+        when(request.body()).thenReturn("{\"to\": \"" + UUID.randomUUID() + "\", \"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
     void shouldTransferReturnBadRequestWhenNoBody() {
+        // GIVEN
+        when(request.params("id")).thenReturn(UUID.randomUUID().toString());
+
         // WHEN
         Object result = transferController.transfer(request, response);
 
@@ -69,6 +88,7 @@ class TransferControllerTest {
     @Test
     void shouldTransferReturnBadRequestWhenBodyInvalid() {
         // GIVEN
+        when(request.params("id")).thenReturn(UUID.randomUUID().toString());
         when(request.body()).thenReturn("nonsense");
 
         // WHEN
@@ -86,7 +106,8 @@ class TransferControllerTest {
         UUID from = UUID.randomUUID();
         UUID to = UUID.randomUUID();
         when(transferService.transfer(from, to, BigDecimal.TEN)).thenThrow(AccountNotFoundException.class);
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": 10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
@@ -104,7 +125,8 @@ class TransferControllerTest {
         UUID to = UUID.randomUUID();
         when(transferService.transfer(from, to, BigDecimal.TEN))
                 .thenThrow(new InsufficientFundsException(new Account(from), BigDecimal.TEN));
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": 10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
@@ -122,7 +144,8 @@ class TransferControllerTest {
         UUID to = UUID.randomUUID();
         when(transferService.transfer(from, to, BigDecimal.TEN.negate()))
                 .thenThrow(new NegativeTransferException(BigDecimal.TEN.negate()));
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": -10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": -10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
@@ -140,7 +163,8 @@ class TransferControllerTest {
         UUID to = UUID.randomUUID();
         when(transferService.transfer(from, to, BigDecimal.TEN))
                 .thenThrow(NumberFormatException.class);
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": 10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
@@ -158,7 +182,8 @@ class TransferControllerTest {
         UUID to = UUID.randomUUID();
         when(transferService.transfer(from, to, BigDecimal.TEN.negate()))
                 .thenThrow(new TransferException("FAIL", new Exception("blablah")));
-        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": -10}");
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"to\": \"" + to + "\", \"amount\": -10}");
 
         // WHEN
         Object result = transferController.transfer(request, response);
