@@ -7,7 +7,7 @@ public class AmountValidator {
     private AmountValidator() {}
 
     public static void validate(BigDecimal amount) {
-        if (amount.scale() > 2) {
+        if (amount.scale() > 2 || amount.signum() < 0) {
             throw new NumberFormatException("Invalid amount of money: " + amount);
         }
     }

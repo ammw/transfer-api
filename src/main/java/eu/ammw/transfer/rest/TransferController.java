@@ -1,6 +1,7 @@
 package eu.ammw.transfer.rest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import eu.ammw.transfer.domain.*;
 import eu.ammw.transfer.model.Transfer;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static spark.Spark.get;
@@ -31,6 +33,7 @@ public class TransferController implements Controller {
     @Override
     public void registerEndpoints() {
         post("/transfer", this::transfer);
+        post("/accounts/:id/deposit", this::deposit);
         get("/accounts/:id/history", this::getHistory);
     }
 
@@ -58,6 +61,28 @@ public class TransferController implements Controller {
             response.type(TEXT_TYPE);
             response.status(500);
             return String.format("%s: %s", e.getMessage(), e.getCause().getMessage());
+        }
+    }
+
+    Object deposit(Request request, Response response) {
+        try {
+            JsonObject jsonObject = gson.fromJson(request.body(), JsonObject.class);
+            BigDecimal amount = jsonObject.get("amount").getAsBigDecimal();
+            UUID id = UUID.fromString(request.params("id"));
+
+            response.type(JSON_TYPE);
+            transferService.deposit(id, amount);
+            return null;
+        } catch (JsonSyntaxException | NumberFormatException | NullPointerException e) {
+            LOGGER.warn(e.getMessage());
+            response.type(TEXT_TYPE);
+            response.status(400);
+            return "Bad Request";
+        } catch (AccountNotFoundException e) {
+            LOGGER.warn(e.getMessage());
+            response.type(TEXT_TYPE);
+            response.status(404);
+            return "Account not found!";
         }
     }
 

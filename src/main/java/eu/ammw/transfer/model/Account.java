@@ -55,4 +55,9 @@ public class Account {
     public int hashCode() {
         return Objects.hash(id, name, balance);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Account: {id: '%s', name: '%s', balance: %s}", id, name, balance);
+    }
 }

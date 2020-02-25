@@ -24,10 +24,10 @@ public class TransferService {
 
     public Transfer transfer(UUID from, UUID to, BigDecimal amount)
             throws InsufficientFundsException, NegativeTransferException, AccountNotFoundException, TransferException {
-        AmountValidator.validate(amount);
         if (amount.signum() <= 0) {
             throw new NegativeTransferException(amount);
         }
+        AmountValidator.validate(amount);
 
         Account accountTo = accountService.getAccount(to);
         Account accountFrom = accountService.getAccount(from);
@@ -57,5 +57,14 @@ public class TransferService {
             return dataSource.getHistory(id);
         }
         throw new AccountNotFoundException(id);
+    }
+
+    public void deposit(UUID accountId, BigDecimal amount) throws AccountNotFoundException {
+        AmountValidator.validate(amount);
+        Account account = accountService.getAccount(accountId);
+        account.setBalance(account.getBalance().add(amount));
+        dataSource.updateAccount(account);
+        dataSource.commit();
+        LOGGER.info("Deposited {} on {} account ({})", amount, account.getName(), account.getId());
     }
 }

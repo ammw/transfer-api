@@ -14,8 +14,8 @@ class AmountValidatorTest {
     }
 
     @Test
-    void shouldNegativeAmountPass() {
-        AmountValidator.validate(new BigDecimal("-12.34"));
+    void shouldNegativeAmountFail() {
+        assertThrows(NumberFormatException.class, () -> AmountValidator.validate(new BigDecimal("-12.34")));
     }
 
     @Test

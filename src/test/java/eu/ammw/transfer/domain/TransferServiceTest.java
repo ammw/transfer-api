@@ -157,4 +157,34 @@ class TransferServiceTest {
         // WHEN
         assertThrows(AccountNotFoundException.class, () -> transferService.getHistory(TEST_UUID));
     }
+
+    @Test
+    void shouldDeposit() throws Exception {
+        // GIVEN
+        BigDecimal amount = BigDecimal.ONE;
+        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
+
+        // WHEN
+        transferService.deposit(TEST_UUID, amount);
+
+        // THEN
+        verify(dataSource).updateAccount(new Account(TEST_UUID, "Jane Doe", BigDecimal.valueOf(11)));
+        verify(dataSource).commit();
+        verify(dataSource, never()).rollback();
+    }
+
+    @Test
+    void shouldDepositThrowWhenAmountInvalid() {
+        assertThrows(NumberFormatException.class, () -> transferService.deposit(TEST_UUID, new BigDecimal("0.123")));
+    }
+
+    @Test
+    void shouldDepositThrowWhenNoAccount() throws Exception {
+        // GIVEN
+        BigDecimal amount = BigDecimal.ONE;
+        when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
+
+        // WHEN
+        assertThrows(AccountNotFoundException.class, () -> transferService.deposit(TEST_UUID, amount));
+    }
 }

@@ -212,4 +212,84 @@ class TransferControllerTest {
         verify(response).status(404);
         assertThat(result).isEqualTo("Account not found!");
     }
+
+    @Test
+    void shouldDoDeposit() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.deposit(request, response);
+
+        // THEN
+        verify(response).type("application/json");
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void shouldDepositReturnBadRequestOnInvalidAmount() throws AccountNotFoundException {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": -10}");
+        doThrow(NumberFormatException.class).when(transferService).deposit(to, BigDecimal.TEN.negate());
+
+        // WHEN
+        Object result = transferController.deposit(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldDepositReturnBadRequestOnInvalidBody() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("nonsense");
+
+        // WHEN
+        Object result = transferController.deposit(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldDepositReturnBadRequestOnMissingBody() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+
+        // WHEN
+        Object result = transferController.deposit(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldDepositReturnNotFoundWhenNoAccount() throws AccountNotFoundException {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": -10}");
+        doThrow(AccountNotFoundException.class).when(transferService).deposit(to, BigDecimal.TEN.negate());
+
+        // WHEN
+        Object result = transferController.deposit(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(404);
+        assertThat(result).isEqualTo("Account not found!");
+    }
 }

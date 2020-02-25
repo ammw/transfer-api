@@ -52,4 +52,9 @@ public class Transfer {
     public int hashCode() {
         return Objects.hash(id, from, to, amount);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Transfer: {id: '%s', from: '%s', to: '%s', amount: %s}", id, from, to, amount);
+    }
 }
