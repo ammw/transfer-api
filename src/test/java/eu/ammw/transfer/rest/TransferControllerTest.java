@@ -101,6 +101,23 @@ class TransferControllerTest {
     }
 
     @Test
+    void shouldTransferReturnNotFoundWhenNoAccountGiven() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        when(transferService.transfer(from, null, BigDecimal.TEN)).thenThrow(AccountNotFoundException.class);
+        when(request.params("id")).thenReturn(from.toString());
+        when(request.body()).thenReturn("{\"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(404);
+        assertThat(result).isEqualTo("Account not found!");
+    }
+
+    @Test
     void shouldTransferReturnNotFoundWhenNoAccount() throws Exception {
         // GIVEN
         UUID from = UUID.randomUUID();

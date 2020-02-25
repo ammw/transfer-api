@@ -24,6 +24,9 @@ public class AccountService {
     }
 
     public Account getAccount(UUID id) throws AccountNotFoundException {
+        if (id == null) {
+            throw new AccountNotFoundException(null);
+        }
         return dataSource.getAccount(id).orElseThrow(() -> new AccountNotFoundException(id));
     }
 

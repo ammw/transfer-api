@@ -80,7 +80,7 @@ public class InMemoryDatabaseService implements DataSource {
     @Override
     public List<Transfer> getHistory(UUID accountId) {
         try {
-            ResultSet resultSet = read(TRANSFER_HISTORY_QUERY);
+            ResultSet resultSet = read(String.format(TRANSFER_HISTORY_QUERY, accountId, accountId));
             List<Transfer> history = new ArrayList<>();
             while (resultSet.next()) {
                 history.add(getTransfer(resultSet));
