@@ -22,15 +22,19 @@ public class AccountService {
         return dataSource.getAllAccounts();
     }
 
-    public Account getAccount(UUID id) {
-        return dataSource.getAccount(id).orElse(null);
+    public Account getAccount(UUID id) throws AccountNotFoundException {
+        return dataSource.getAccount(id).orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     public Account createAccount() {
-        Account account = new Account(null, "Test" + System.currentTimeMillis(),
-                BigDecimal.valueOf(System.currentTimeMillis() % 10000).divide(BigDecimal.valueOf(100)));
+        Account account = new Account(null, "Test" + System.currentTimeMillis(), BigDecimal.ZERO);
         dataSource.createAccount(account);
+        dataSource.commit();
         LOGGER.info("Created account {}", account.getId());
         return account;
+    }
+
+    public boolean accountExists(UUID id) {
+        return dataSource.getAccount(id).isPresent();
     }
 }

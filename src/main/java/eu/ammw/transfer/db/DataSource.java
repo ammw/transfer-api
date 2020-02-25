@@ -8,6 +8,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DataSource {
+    void commit();
+
+    void rollback();
+
     void createAccount(Account account);
 
     void updateAccount(Account account);

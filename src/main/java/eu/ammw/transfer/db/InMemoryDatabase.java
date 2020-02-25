@@ -10,7 +10,8 @@ import java.sql.Statement;
 
 public class InMemoryDatabase {
     private static final String JDBC_DRIVER = "org.h2.Driver";
-    private static final String DB_URL = "jdbc:h2:mem:transfer-api-db";
+    private static final String SQL_PATH = InMemoryDatabase.class.getResource("/db_init.sql").getPath();
+    private static final String DB_URL = "jdbc:h2:mem:transfer-api-db;INIT=RUNSCRIPT FROM '" + SQL_PATH + "'";
     private static final String USER = "sa";
     private static final String PASS = "";
 
@@ -21,7 +22,7 @@ public class InMemoryDatabase {
             Class.forName(JDBC_DRIVER);
             try (Connection conn = getConnection()) {
                 try (Statement statement = conn.createStatement()) {
-                    createStructure(statement);
+                    statement.executeQuery("SELECT * FROM History;");
                     LOGGER.info("Created in-memory database with structure");
                 } catch (SQLException e) {
                     LOGGER.error("Could not create database structure", e);
@@ -35,28 +36,8 @@ public class InMemoryDatabase {
     }
 
     static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL, USER, PASS);
-    }
-
-    private static void createStructure(Statement statement) throws SQLException {
-        String sql = "CREATE TABLE Accounts " +
-                "(id UUID not NULL, " +
-                " name VARCHAR not NULL," +
-                " balance DECIMAL not NULL default 0," +
-                " PRIMARY KEY ( id ));" +
-                "CREATE TABLE History " +
-                "(id UUID not NULL, " +
-                " account_from UUID not NULL, " +
-                " account_to UUID not NULL, " +
-                " amount DECIMAL not NULL," +
-                " PRIMARY KEY ( id ));" +
-                "ALTER TABLE History\n" +
-                " ADD FOREIGN KEY (account_from) \n" +
-                " REFERENCES Accounts(id);" +
-                "ALTER TABLE History\n" +
-                " ADD FOREIGN KEY (account_to) \n" +
-                " REFERENCES Accounts(id);";
-        statement.executeUpdate(sql);
-        statement.getConnection().commit();
+        Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
+        connection.setAutoCommit(false);
+        return connection;
     }
 }

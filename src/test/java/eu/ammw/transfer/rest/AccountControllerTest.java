@@ -65,7 +65,7 @@ class AccountControllerTest {
     }
 
     @Test
-    void shouldGetAccountFromService() {
+    void shouldGetAccountFromService() throws Exception {
         // GIVEN
         Account expected = mock(Account.class);
         when(accountService.getAccount(TEST_UUID)).thenReturn(expected);

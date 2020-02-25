@@ -2,6 +2,7 @@ package eu.ammw.transfer.domain;
 
 import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.model.Account;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -54,7 +55,7 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldGetAccountByUUID() {
+    void shouldGetAccountByUUID() throws AccountNotFoundException {
         // GIVEN
         Account expected = new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN);
         when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.of(expected));
@@ -67,15 +68,12 @@ class AccountServiceTest {
     }
 
     @Test
-    void shouldReturnNullWhenNoAccountByUUID() {
+    void shouldThrowAccountNotFoundExceptionWhenNoAccountByUUID() {
         // GIVEN
         when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.empty());
 
         // WHEN
-        Account result = service.getAccount(TEST_UUID);
-
-        // THEN
-        assertThat(result).isNull();
+        Assertions.assertThrows(AccountNotFoundException.class, () -> service.getAccount(TEST_UUID));
     }
 
     @Test

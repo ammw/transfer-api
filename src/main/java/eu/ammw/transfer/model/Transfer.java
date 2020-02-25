@@ -1,9 +1,8 @@
 package eu.ammw.transfer.model;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.UUID;
-
-import static java.util.Optional.ofNullable;
 
 public class Transfer {
     private final UUID id;
@@ -11,8 +10,12 @@ public class Transfer {
     private final UUID to;
     private final BigDecimal amount;
 
+    public Transfer(UUID from, UUID to, BigDecimal amount) {
+        this(UUID.randomUUID(), from, to, amount);
+    }
+
     public Transfer(UUID id, UUID from, UUID to, BigDecimal amount) {
-        this.id = ofNullable(id).orElse(UUID.randomUUID());
+        this.id = id;
         this.from = from;
         this.to = to;
         this.amount = amount;
@@ -32,5 +35,21 @@ public class Transfer {
 
     public BigDecimal getAmount() {
         return amount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transfer transfer = (Transfer) o;
+        return Objects.equals(id, transfer.id) &&
+                Objects.equals(from, transfer.from) &&
+                Objects.equals(to, transfer.to) &&
+                amount.compareTo(transfer.amount) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, from, to, amount);
     }
 }
