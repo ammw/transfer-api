@@ -187,4 +187,43 @@ class TransferServiceTest {
         // WHEN
         assertThrows(AccountNotFoundException.class, () -> transferService.deposit(TEST_UUID, amount));
     }
+
+    @Test
+    void shouldWithdraw() throws Exception {
+        // GIVEN
+        BigDecimal amount = BigDecimal.TEN;
+        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
+
+        // WHEN
+        transferService.withdraw(TEST_UUID, amount);
+
+        // THEN
+        verify(dataSource).updateAccount(new Account(TEST_UUID, "Jane Doe", BigDecimal.ZERO));
+        verify(dataSource).commit();
+        verify(dataSource, never()).rollback();
+    }
+
+    @Test
+    void shouldWithdrawThrowWhenAmountInvalid() {
+        assertThrows(NumberFormatException.class, () -> transferService.withdraw(TEST_UUID, new BigDecimal("0.123")));
+    }
+
+    @Test
+    void shouldWithdrawThrowWhenNoFunds() throws AccountNotFoundException {
+        // GIVEN
+        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.ONE));
+
+        // WHEN
+        assertThrows(InsufficientFundsException.class, () -> transferService.withdraw(TEST_UUID, BigDecimal.TEN));
+    }
+
+    @Test
+    void shouldWithdrawThrowWhenNoAccount() throws Exception {
+        // GIVEN
+        BigDecimal amount = BigDecimal.ONE;
+        when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
+
+        // WHEN
+        assertThrows(AccountNotFoundException.class, () -> transferService.withdraw(TEST_UUID, amount));
+    }
 }

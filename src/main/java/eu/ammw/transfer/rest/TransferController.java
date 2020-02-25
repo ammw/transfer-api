@@ -34,6 +34,7 @@ public class TransferController implements Controller {
     public void registerEndpoints() {
         post("/transfer", this::transfer);
         post("/accounts/:id/deposit", this::deposit);
+        post("/accounts/:id/withdraw", this::withdraw);
         get("/accounts/:id/history", this::getHistory);
     }
 
@@ -83,6 +84,33 @@ public class TransferController implements Controller {
             response.type(TEXT_TYPE);
             response.status(404);
             return "Account not found!";
+        }
+    }
+
+    Object withdraw(Request request, Response response) {
+        try {
+            JsonObject jsonObject = gson.fromJson(request.body(), JsonObject.class);
+            BigDecimal amount = jsonObject.get("amount").getAsBigDecimal();
+            UUID id = UUID.fromString(request.params("id"));
+
+            response.type(JSON_TYPE);
+            transferService.withdraw(id, amount);
+            return null;
+        } catch (JsonSyntaxException | NumberFormatException | NullPointerException e) {
+            LOGGER.warn(e.getMessage());
+            response.type(TEXT_TYPE);
+            response.status(400);
+            return "Bad Request";
+        } catch (AccountNotFoundException e) {
+            LOGGER.warn(e.getMessage());
+            response.type(TEXT_TYPE);
+            response.status(404);
+            return "Account not found!";
+        } catch (InsufficientFundsException e) {
+            LOGGER.warn(e.getMessage());
+            response.type(TEXT_TYPE);
+            response.status(409);
+            return e.getMessage();
         }
     }
 

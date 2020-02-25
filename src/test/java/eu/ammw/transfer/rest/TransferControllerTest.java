@@ -292,4 +292,100 @@ class TransferControllerTest {
         verify(response).status(404);
         assertThat(result).isEqualTo("Account not found!");
     }
+
+    @Test
+    void shouldDoWithdrawal() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("application/json");
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void shouldWithdrawalReturnBadRequestOnInvalidAmount() throws Exception {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": -10}");
+        doThrow(NumberFormatException.class).when(transferService).withdraw(to, BigDecimal.TEN.negate());
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldWithdrawalReturnBadRequestOnInvalidBody() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("nonsense");
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldWithdrawalReturnBadRequestOnMissingBody() {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldWithdrawalReturnNotFoundWhenNoAccount() throws Exception {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": -10}");
+        doThrow(AccountNotFoundException.class).when(transferService).withdraw(to, BigDecimal.TEN.negate());
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(404);
+        assertThat(result).isEqualTo("Account not found!");
+    }
+
+    @Test
+    void shouldWithdrawalReturnConflictWhenNoFunds() throws Exception {
+        // GIVEN
+        UUID to = UUID.randomUUID();
+        when(request.params("id")).thenReturn(to.toString());
+        when(request.body()).thenReturn("{\"amount\": 10}");
+        doThrow(InsufficientFundsException.class).when(transferService).withdraw(to, BigDecimal.TEN);
+
+        // WHEN
+        Object result = transferController.withdraw(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(409);
+    }
 }

@@ -67,4 +67,16 @@ public class TransferService {
         dataSource.commit();
         LOGGER.info("Deposited {} on {} account ({})", amount, account.getName(), account.getId());
     }
+
+    public void withdraw(UUID accountId, BigDecimal amount) throws AccountNotFoundException, InsufficientFundsException {
+        AmountValidator.validate(amount);
+        Account account = accountService.getAccount(accountId);
+        if (amount.compareTo(account.getBalance()) > 0) {
+            throw new InsufficientFundsException(account, amount);
+        }
+        account.setBalance(account.getBalance().subtract(amount));
+        dataSource.updateAccount(account);
+        dataSource.commit();
+        LOGGER.info("Deposited {} on {} account ({})", amount, account.getName(), account.getId());
+    }
 }
