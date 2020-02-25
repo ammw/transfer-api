@@ -2,6 +2,7 @@ package eu.ammw.transfer.domain;
 
 import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.model.Account;
+import eu.ammw.transfer.validator.NameValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ public class AccountService {
     }
 
     public Account createAccount(String name) {
+        NameValidator.validate(name);
         Account account = new Account(null, name, BigDecimal.ZERO);
         dataSource.createAccount(account);
         dataSource.commit();

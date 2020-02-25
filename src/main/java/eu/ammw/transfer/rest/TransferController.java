@@ -39,7 +39,7 @@ public class TransferController implements Controller {
             Transfer transfer = gson.fromJson(request.body(), Transfer.class);
             response.type(JSON_TYPE);
             return transferService.transfer(transfer.getFrom(), transfer.getTo(), transfer.getAmount());
-        } catch (JsonSyntaxException | NullPointerException e) {
+        } catch (JsonSyntaxException | NumberFormatException | NullPointerException e) {
             LOGGER.warn(e.getMessage());
             response.type(TEXT_TYPE);
             response.status(400);

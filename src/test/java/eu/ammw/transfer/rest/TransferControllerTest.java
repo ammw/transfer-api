@@ -134,6 +134,24 @@ class TransferControllerTest {
     }
 
     @Test
+    void shouldTransferReturnBadRequestWhenIncorrectAmount() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        when(transferService.transfer(from, to, BigDecimal.TEN))
+                .thenThrow(NumberFormatException.class);
+        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
     void shouldTransferReturnErrorWhenTransferFailed() throws Exception {
         // GIVEN
         UUID from = UUID.randomUUID();

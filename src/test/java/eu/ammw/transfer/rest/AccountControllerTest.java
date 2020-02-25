@@ -78,6 +78,21 @@ class AccountControllerTest {
     }
 
     @Test
+    void shouldReturnBadRequestWhenAccountNameIncorrect() {
+        // GIVEN
+        when(accountService.createAccount("Test")).thenThrow(IllegalArgumentException.class);
+        when(request.body()).thenReturn("{\"name\":\"Test\"}");
+
+        // WHEN
+        Object result = accountController.createAccount(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
     void shouldGetAccountFromService() throws Exception {
         // GIVEN
         Account expected = mock(Account.class);

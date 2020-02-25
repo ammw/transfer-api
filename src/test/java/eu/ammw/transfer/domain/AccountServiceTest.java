@@ -88,6 +88,11 @@ class AccountServiceTest {
     }
 
     @Test
+    void shouldNotCreateAccountWithInvalidName() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> service.createAccount(".::#$%::."));
+    }
+
+    @Test
     void shouldReturnTrueWhenAccountExists() {
         // GIVEN
         when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.of(mock(Account.class)));

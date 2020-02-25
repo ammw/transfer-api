@@ -3,6 +3,7 @@ package eu.ammw.transfer.domain;
 import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.model.Account;
 import eu.ammw.transfer.model.Transfer;
+import eu.ammw.transfer.validator.AmountValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ public class TransferService {
 
     public Transfer transfer(UUID from, UUID to, BigDecimal amount)
             throws InsufficientFundsException, NegativeTransferException, AccountNotFoundException, TransferException {
+        AmountValidator.validate(amount);
         if (amount.signum() <= 0) {
             throw new NegativeTransferException(amount);
         }

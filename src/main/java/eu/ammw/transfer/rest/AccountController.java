@@ -47,7 +47,7 @@ public class AccountController implements Controller {
             Account account = gson.fromJson(request.body(), Account.class);
             response.type(JSON_TYPE);
             return accountService.createAccount(account.getName());
-        } catch (JsonSyntaxException | NullPointerException e) {
+        } catch (JsonSyntaxException | NullPointerException | IllegalArgumentException e) {
             LOGGER.error("Could not read account details to create!", e);
             response.type(TEXT_TYPE);
             response.status(400);

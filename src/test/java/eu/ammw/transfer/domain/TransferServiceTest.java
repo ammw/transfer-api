@@ -83,6 +83,18 @@ class TransferServiceTest {
     }
 
     @Test
+    void shouldTransferThrowWhenAmountInvalid() throws Exception {
+        // GIVEN
+        UUID anotherId = UUID.randomUUID();
+        BigDecimal amount = new BigDecimal("0.001");
+        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
+        when(accountService.getAccount(anotherId)).thenReturn(new Account(anotherId, "John Doe", BigDecimal.ZERO));
+
+        // WHEN
+        assertThrows(NumberFormatException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
+    }
+
+    @Test
     void shouldTransferThrowWhenFundsInsufficient() throws Exception {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
