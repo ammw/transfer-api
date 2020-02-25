@@ -79,9 +79,35 @@ class AccountServiceTest {
     @Test
     void shouldCreateNewAccount() {
         // WHEN
-        Account result = service.createAccount();
+        Account result = service.createAccount("Test");
 
         // THEN
         assertThat(result.getId()).isNotNull();
+        assertThat(result.getBalance()).isEqualTo(BigDecimal.ZERO);
+        assertThat(result.getName()).isEqualTo("Test");
+    }
+
+    @Test
+    void shouldReturnTrueWhenAccountExists() {
+        // GIVEN
+        when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.of(mock(Account.class)));
+
+        // WHEN
+        boolean result = service.accountExists(TEST_UUID);
+
+        // THEN
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void shouldReturnFalseWhenAccountNotFound() {
+        // GIVEN
+        when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.empty());
+
+        // WHEN
+        boolean result = service.accountExists(TEST_UUID);
+
+        // THEN
+        assertThat(result).isFalse();
     }
 }

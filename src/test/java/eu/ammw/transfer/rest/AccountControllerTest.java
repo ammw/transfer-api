@@ -1,5 +1,6 @@
 package eu.ammw.transfer.rest;
 
+import eu.ammw.transfer.domain.AccountNotFoundException;
 import eu.ammw.transfer.domain.AccountService;
 import eu.ammw.transfer.model.Account;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +55,8 @@ class AccountControllerTest {
     void shouldCreateAccount() {
         // GIVEN
         Account expected = mock(Account.class);
-        when(accountService.createAccount()).thenReturn(expected);
+        when(accountService.createAccount("Test")).thenReturn(expected);
+        when(request.body()).thenReturn("{\"name\":\"Test\"}");
 
         // WHEN
         Object result = accountController.createAccount(request, response);
@@ -62,6 +64,17 @@ class AccountControllerTest {
         // THEN
         verify(response).type("application/json");
         assertThat(result).isSameAs(expected);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenCreateAccountIncorrect() {
+        // WHEN
+        Object result = accountController.createAccount(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
     }
 
     @Test
@@ -77,6 +90,21 @@ class AccountControllerTest {
         // THEN
         verify(response).type("application/json");
         assertThat(result).isSameAs(expected);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenNoAccount() throws Exception {
+        // GIVEN
+        when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
+        when(request.params("id")).thenReturn(TEST_UUID.toString());
+
+        // WHEN
+        Object result = accountController.getAccount(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(404);
+        assertThat(result).isEqualTo("Not Found");
     }
 
     @Test

@@ -1,5 +1,7 @@
 package eu.ammw.transfer.rest;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import eu.ammw.transfer.domain.AccountNotFoundException;
 import eu.ammw.transfer.domain.AccountService;
 import eu.ammw.transfer.model.Account;
@@ -21,6 +23,7 @@ public class AccountController implements Controller {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
 
     private final AccountService accountService;
+    private final Gson gson = new Gson();
 
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
@@ -40,8 +43,16 @@ public class AccountController implements Controller {
     }
 
     Object createAccount(Request request, Response response) {
-        response.type(JSON_TYPE);
-        return accountService.createAccount();
+        try {
+            Account account = gson.fromJson(request.body(), Account.class);
+            response.type(JSON_TYPE);
+            return accountService.createAccount(account.getName());
+        } catch (JsonSyntaxException | NullPointerException e) {
+            LOGGER.error("Could not read account details to create!", e);
+            response.type(TEXT_TYPE);
+            response.status(400);
+            return "Bad Request";
+        }
     }
 
     Object getAccount(Request request, Response response) {

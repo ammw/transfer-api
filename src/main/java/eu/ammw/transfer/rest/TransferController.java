@@ -32,7 +32,6 @@ public class TransferController implements Controller {
     public void registerEndpoints() {
         post("/transfer", this::transfer);
         get("/accounts/:id/history", this::getHistory);
-
     }
 
     Object transfer(Request request, Response response) {
@@ -40,11 +39,11 @@ public class TransferController implements Controller {
             Transfer transfer = gson.fromJson(request.body(), Transfer.class);
             response.type(JSON_TYPE);
             return transferService.transfer(transfer.getFrom(), transfer.getTo(), transfer.getAmount());
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | NullPointerException e) {
             LOGGER.warn(e.getMessage());
             response.type(TEXT_TYPE);
             response.status(400);
-            return "Bad request";
+            return "Bad Request";
         } catch (AccountNotFoundException e) {
             LOGGER.warn(e.getMessage());
             response.type(TEXT_TYPE);
@@ -58,7 +57,7 @@ public class TransferController implements Controller {
             LOGGER.error("Exception in transaction", e);
             response.type(TEXT_TYPE);
             response.status(500);
-            return e.getMessage();
+            return String.format("%s: %s", e.getMessage(), e.getCause().getMessage());
         }
     }
 

@@ -26,8 +26,8 @@ public class AccountService {
         return dataSource.getAccount(id).orElseThrow(() -> new AccountNotFoundException(id));
     }
 
-    public Account createAccount() {
-        Account account = new Account(null, "Test" + System.currentTimeMillis(), BigDecimal.ZERO);
+    public Account createAccount(String name) {
+        Account account = new Account(null, name, BigDecimal.ZERO);
         dataSource.createAccount(account);
         dataSource.commit();
         LOGGER.info("Created account {}", account.getId());

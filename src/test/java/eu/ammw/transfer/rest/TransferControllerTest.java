@@ -1,7 +1,7 @@
 package eu.ammw.transfer.rest;
 
-import eu.ammw.transfer.domain.AccountNotFoundException;
-import eu.ammw.transfer.domain.TransferService;
+import eu.ammw.transfer.domain.*;
+import eu.ammw.transfer.model.Account;
 import eu.ammw.transfer.model.Transfer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +53,102 @@ class TransferControllerTest {
         // THEN
         verify(response).type("application/json");
         assertThat(result).isSameAs(expected);
+    }
+
+    @Test
+    void shouldTransferReturnBadRequestWhenNoBody() {
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldTransferReturnBadRequestWhenBodyInvalid() {
+        // GIVEN
+        when(request.body()).thenReturn("nonsense");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(400);
+        assertThat(result).isEqualTo("Bad Request");
+    }
+
+    @Test
+    void shouldTransferReturnNotFoundWhenNoAccount() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        when(transferService.transfer(from, to, BigDecimal.TEN)).thenThrow(AccountNotFoundException.class);
+        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(404);
+        assertThat(result).isEqualTo("Account not found!");
+    }
+
+    @Test
+    void shouldTransferReturnConflictWhenNoFunds() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        when(transferService.transfer(from, to, BigDecimal.TEN))
+                .thenThrow(new InsufficientFundsException(new Account(from), BigDecimal.TEN));
+        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": 10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(409);
+        assertThat(result.toString()).contains("insufficient funds");
+    }
+
+    @Test
+    void shouldTransferReturnConflictWhenNegativeAmount() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        when(transferService.transfer(from, to, BigDecimal.TEN.negate()))
+                .thenThrow(new NegativeTransferException(BigDecimal.TEN.negate()));
+        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": -10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(409);
+        assertThat(result.toString()).contains("transfer non-positive amount");
+    }
+
+    @Test
+    void shouldTransferReturnErrorWhenTransferFailed() throws Exception {
+        // GIVEN
+        UUID from = UUID.randomUUID();
+        UUID to = UUID.randomUUID();
+        when(transferService.transfer(from, to, BigDecimal.TEN.negate()))
+                .thenThrow(new TransferException("FAIL", new Exception("blablah")));
+        when(request.body()).thenReturn("{\"from\": \"" + from + "\", \"to\": \"" + to + "\", \"amount\": -10}");
+
+        // WHEN
+        Object result = transferController.transfer(request, response);
+
+        // THEN
+        verify(response).type("text/plain");
+        verify(response).status(500);
+        assertThat(result.toString()).isEqualTo("FAIL: blablah");
     }
 
     @Test
