@@ -22,7 +22,7 @@ public class TransferService {
         this.accountService = accountService;
     }
 
-    public Transfer transfer(UUID from, UUID to, BigDecimal amount)
+    public synchronized Transfer transfer(UUID from, UUID to, BigDecimal amount)
             throws InsufficientFundsException, NegativeTransferException, AccountNotFoundException, TransferException {
         if (amount.signum() <= 0) {
             throw new NegativeTransferException(amount);
@@ -62,26 +62,38 @@ public class TransferService {
         throw new AccountNotFoundException(id);
     }
 
-    public void deposit(UUID accountId, BigDecimal amount) throws AccountNotFoundException {
+    public synchronized void deposit(UUID accountId, BigDecimal amount)
+            throws AccountNotFoundException, TransferException {
         AmountValidator.validate(amount);
         Account account = accountService.getAccount(accountId);
         account.setBalance(account.getBalance().add(amount));
-        dataSource.updateAccount(account);
-        dataSource.createTransfer(new Transfer(accountId, accountId, amount));
-        dataSource.commit();
-        LOGGER.info("Deposited {} on '{}' account ({})", amount, account.getName(), account.getId());
+        try {
+            dataSource.updateAccount(account);
+            dataSource.createTransfer(new Transfer(accountId, accountId, amount));
+            dataSource.commit();
+            LOGGER.info("Deposited {} on '{}' account ({})", amount, account.getName(), account.getId());
+        } catch (Exception e) {
+            dataSource.rollback();
+            throw new TransferException("Exception during deposit", e);
+        }
     }
 
-    public void withdraw(UUID accountId, BigDecimal amount) throws AccountNotFoundException, InsufficientFundsException {
+    public synchronized void withdraw(UUID accountId, BigDecimal amount)
+            throws AccountNotFoundException, InsufficientFundsException, TransferException {
         AmountValidator.validate(amount);
         Account account = accountService.getAccount(accountId);
         if (amount.compareTo(account.getBalance()) > 0) {
             throw new InsufficientFundsException(account, amount);
         }
         account.setBalance(account.getBalance().subtract(amount));
-        dataSource.updateAccount(account);
-        dataSource.createTransfer(new Transfer(accountId, accountId, amount.negate()));
-        dataSource.commit();
-        LOGGER.info("Withdrawal of {} from '{}' account ({})", amount, account.getName(), account.getId());
+        try {
+            dataSource.updateAccount(account);
+            dataSource.createTransfer(new Transfer(accountId, accountId, amount.negate()));
+            dataSource.commit();
+            LOGGER.info("Withdrawal of {} from '{}' account ({})", amount, account.getName(), account.getId());
+        } catch (Exception e) {
+            dataSource.rollback();
+            throw new TransferException("Exception during withdrawal", e);
+        }
     }
 }

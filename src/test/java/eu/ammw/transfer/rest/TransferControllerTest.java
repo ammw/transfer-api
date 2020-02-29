@@ -233,7 +233,7 @@ class TransferControllerTest {
         // THEN
         verify(response).type("text/plain");
         verify(response).status(400);
-        assertThat(result).isEqualTo("Invalid account ID!");
+        assertThat(result).isEqualTo("Bad Request");
     }
 
     @Test
@@ -267,7 +267,7 @@ class TransferControllerTest {
     }
 
     @Test
-    void shouldDepositReturnBadRequestOnInvalidAmount() throws AccountNotFoundException {
+    void shouldDepositReturnBadRequestOnInvalidAmount() throws Exception {
         // GIVEN
         UUID to = UUID.randomUUID();
         when(request.params("id")).thenReturn(to.toString());
@@ -310,7 +310,7 @@ class TransferControllerTest {
     }
 
     @Test
-    void shouldDepositReturnNotFoundWhenNoAccount() throws AccountNotFoundException {
+    void shouldDepositReturnNotFoundWhenNoAccount() throws Exception {
         // GIVEN
         UUID to = UUID.randomUUID();
         when(request.params("id")).thenReturn(to.toString());

@@ -116,7 +116,7 @@ class AccountControllerTest {
         // THEN
         verify(response).type("text/plain");
         verify(response).status(404);
-        assertThat(result).isEqualTo("Not Found");
+        assertThat(result).isEqualTo("Account not found!");
     }
 
     @Test
@@ -130,6 +130,6 @@ class AccountControllerTest {
         // THEN
         verify(response).type("text/plain");
         verify(response).status(400);
-        assertThat(result).isEqualTo("Invalid account ID!");
+        assertThat(result).isEqualTo("Bad Request");
     }
 }
