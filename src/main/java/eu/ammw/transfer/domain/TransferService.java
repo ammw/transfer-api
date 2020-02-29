@@ -28,6 +28,9 @@ public class TransferService {
             throw new NegativeTransferException(amount);
         }
         AmountValidator.validate(amount);
+        if (from.equals(to)) {
+            throw new TransferException("Cannot transfer money to yourself!");
+        }
 
         Account accountTo = accountService.getAccount(to);
         Account accountFrom = accountService.getAccount(from);
@@ -64,8 +67,9 @@ public class TransferService {
         Account account = accountService.getAccount(accountId);
         account.setBalance(account.getBalance().add(amount));
         dataSource.updateAccount(account);
+        dataSource.createTransfer(new Transfer(accountId, accountId, amount));
         dataSource.commit();
-        LOGGER.info("Deposited {} on {} account ({})", amount, account.getName(), account.getId());
+        LOGGER.info("Deposited {} on '{}' account ({})", amount, account.getName(), account.getId());
     }
 
     public void withdraw(UUID accountId, BigDecimal amount) throws AccountNotFoundException, InsufficientFundsException {
@@ -76,7 +80,8 @@ public class TransferService {
         }
         account.setBalance(account.getBalance().subtract(amount));
         dataSource.updateAccount(account);
+        dataSource.createTransfer(new Transfer(accountId, accountId, amount.negate()));
         dataSource.commit();
-        LOGGER.info("Deposited {} on {} account ({})", amount, account.getName(), account.getId());
+        LOGGER.info("Withdrawal of {} from '{}' account ({})", amount, account.getName(), account.getId());
     }
 }

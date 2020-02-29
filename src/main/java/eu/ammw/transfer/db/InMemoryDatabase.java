@@ -35,7 +35,7 @@ public class InMemoryDatabase {
         }
     }
 
-    static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(DB_URL, USER, PASS);
         connection.setAutoCommit(false);
         return connection;

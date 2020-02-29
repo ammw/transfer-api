@@ -4,10 +4,11 @@ import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.db.InMemoryDatabaseService;
 import eu.ammw.transfer.model.Account;
 import eu.ammw.transfer.model.Transfer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TransferServiceTest {
     private static final UUID TEST_UUID = UUID.randomUUID();
 
@@ -27,13 +29,8 @@ class TransferServiceTest {
     @Mock
     private AccountService accountService;
 
+    @InjectMocks
     private TransferService transferService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-        transferService = new TransferService(dataSource, accountService);
-    }
 
     @Test
     void shouldTransfer() throws Exception {
@@ -63,10 +60,8 @@ class TransferServiceTest {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
         BigDecimal amount = BigDecimal.ZERO;
-        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
-        when(accountService.getAccount(anotherId)).thenReturn(new Account(anotherId, "John Doe", BigDecimal.ZERO));
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(NegativeTransferException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
     }
 
@@ -75,10 +70,8 @@ class TransferServiceTest {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
         BigDecimal amount = BigDecimal.ONE.negate();
-        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
-        when(accountService.getAccount(anotherId)).thenReturn(new Account(anotherId, "John Doe", BigDecimal.ZERO));
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(NegativeTransferException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
     }
 
@@ -87,10 +80,8 @@ class TransferServiceTest {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
         BigDecimal amount = new BigDecimal("0.001");
-        when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
-        when(accountService.getAccount(anotherId)).thenReturn(new Account(anotherId, "John Doe", BigDecimal.ZERO));
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(NumberFormatException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
     }
 
@@ -102,7 +93,7 @@ class TransferServiceTest {
         when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.TEN));
         when(accountService.getAccount(anotherId)).thenReturn(new Account(anotherId, "John Doe", BigDecimal.ZERO));
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(InsufficientFundsException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
     }
 
@@ -111,10 +102,11 @@ class TransferServiceTest {
         // GIVEN
         UUID anotherId = UUID.randomUUID();
         BigDecimal amount = BigDecimal.ONE;
-        when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
+        doThrow(AccountNotFoundException.class).when(accountService).getAccount(anotherId);
 
-        // WHEN
-        assertThrows(AccountNotFoundException.class, () -> transferService.transfer(TEST_UUID, anotherId, amount));
+        // WHEN + THEN
+        assertThrows(AccountNotFoundException.class, () ->
+                transferService.transfer(TEST_UUID, anotherId, amount));
     }
 
     @Test
@@ -154,7 +146,7 @@ class TransferServiceTest {
         // GIVEN
         when(accountService.accountExists(TEST_UUID)).thenReturn(false);
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(AccountNotFoundException.class, () -> transferService.getHistory(TEST_UUID));
     }
 
@@ -184,7 +176,7 @@ class TransferServiceTest {
         BigDecimal amount = BigDecimal.ONE;
         when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(AccountNotFoundException.class, () -> transferService.deposit(TEST_UUID, amount));
     }
 
@@ -213,7 +205,7 @@ class TransferServiceTest {
         // GIVEN
         when(accountService.getAccount(TEST_UUID)).thenReturn(new Account(TEST_UUID, "Jane Doe", BigDecimal.ONE));
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(InsufficientFundsException.class, () -> transferService.withdraw(TEST_UUID, BigDecimal.TEN));
     }
 
@@ -223,7 +215,7 @@ class TransferServiceTest {
         BigDecimal amount = BigDecimal.ONE;
         when(accountService.getAccount(TEST_UUID)).thenThrow(AccountNotFoundException.class);
 
-        // WHEN
+        // WHEN + THEN
         assertThrows(AccountNotFoundException.class, () -> transferService.withdraw(TEST_UUID, amount));
     }
 }

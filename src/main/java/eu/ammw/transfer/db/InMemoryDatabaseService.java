@@ -27,12 +27,8 @@ public class InMemoryDatabaseService implements DataSource {
 
     private Connection connection;
 
-    public InMemoryDatabaseService() {
-        try {
-            connection = InMemoryDatabase.getConnection();
-        } catch (SQLException e) {
-            throw new DatabaseServiceException("Could not connect to the database", e);
-        }
+    public InMemoryDatabaseService(Connection connection) {
+        this.connection = connection;
     }
 
     @Override

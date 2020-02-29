@@ -10,7 +10,6 @@ import java.util.List;
 import static spark.Spark.*;
 
 public class ServerConfiguration {
-    private static final String JSON_TYPE = "application/json";
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     private final List<Controller> controllers;

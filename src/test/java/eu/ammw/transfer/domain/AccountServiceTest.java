@@ -3,10 +3,11 @@ package eu.ammw.transfer.domain;
 import eu.ammw.transfer.db.DataSource;
 import eu.ammw.transfer.model.Account;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -15,19 +16,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
     private static final UUID TEST_UUID = UUID.randomUUID();
 
     @Mock
     private DataSource dataSource;
 
+    @InjectMocks
     private AccountService service;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-        service = new AccountService(dataSource);
-    }
 
     @Test
     void shouldGetAccounts() {
@@ -72,7 +69,7 @@ class AccountServiceTest {
         // GIVEN
         when(dataSource.getAccount(TEST_UUID)).thenReturn(Optional.empty());
 
-        // WHEN
+        // WHEN + THEN
         Assertions.assertThrows(AccountNotFoundException.class, () -> service.getAccount(TEST_UUID));
     }
 

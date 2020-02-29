@@ -3,10 +3,11 @@ package eu.ammw.transfer.rest;
 import eu.ammw.transfer.domain.AccountNotFoundException;
 import eu.ammw.transfer.domain.AccountService;
 import eu.ammw.transfer.model.Account;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import spark.Request;
 import spark.Response;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AccountControllerTest {
     private static final UUID TEST_UUID = UUID.randomUUID();
 
@@ -29,13 +31,8 @@ class AccountControllerTest {
     @Mock
     private Response response;
 
+    @InjectMocks
     private AccountController accountController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-        accountController = new AccountController(accountService);
-    }
 
     @Test
     void shouldGetAccountsFromService() {

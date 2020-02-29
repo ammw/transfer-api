@@ -3,10 +3,11 @@ package eu.ammw.transfer.rest;
 import eu.ammw.transfer.domain.*;
 import eu.ammw.transfer.model.Account;
 import eu.ammw.transfer.model.Transfer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import spark.Request;
 import spark.Response;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TransferControllerTest {
     private static final UUID TEST_UUID = UUID.randomUUID();
 
@@ -30,13 +32,8 @@ class TransferControllerTest {
     @Mock
     private Response response;
 
+    @InjectMocks
     private TransferController transferController;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.initMocks(this);
-        transferController = new TransferController(transferService);
-    }
 
     @Test
     void shouldDoTransfer() throws Exception {
@@ -88,7 +85,6 @@ class TransferControllerTest {
     @Test
     void shouldTransferReturnBadRequestWhenBodyInvalid() {
         // GIVEN
-        when(request.params("id")).thenReturn(UUID.randomUUID().toString());
         when(request.body()).thenReturn("nonsense");
 
         // WHEN
@@ -291,7 +287,6 @@ class TransferControllerTest {
     void shouldDepositReturnBadRequestOnInvalidBody() {
         // GIVEN
         UUID to = UUID.randomUUID();
-        when(request.params("id")).thenReturn(to.toString());
         when(request.body()).thenReturn("nonsense");
 
         // WHEN
@@ -305,10 +300,6 @@ class TransferControllerTest {
 
     @Test
     void shouldDepositReturnBadRequestOnMissingBody() {
-        // GIVEN
-        UUID to = UUID.randomUUID();
-        when(request.params("id")).thenReturn(to.toString());
-
         // WHEN
         Object result = transferController.deposit(request, response);
 
@@ -371,7 +362,6 @@ class TransferControllerTest {
     void shouldWithdrawalReturnBadRequestOnInvalidBody() {
         // GIVEN
         UUID to = UUID.randomUUID();
-        when(request.params("id")).thenReturn(to.toString());
         when(request.body()).thenReturn("nonsense");
 
         // WHEN
@@ -387,7 +377,6 @@ class TransferControllerTest {
     void shouldWithdrawalReturnBadRequestOnMissingBody() {
         // GIVEN
         UUID to = UUID.randomUUID();
-        when(request.params("id")).thenReturn(to.toString());
 
         // WHEN
         Object result = transferController.withdraw(request, response);
@@ -424,7 +413,7 @@ class TransferControllerTest {
         doThrow(InsufficientFundsException.class).when(transferService).withdraw(to, BigDecimal.TEN);
 
         // WHEN
-        Object result = transferController.withdraw(request, response);
+        transferController.withdraw(request, response);
 
         // THEN
         verify(response).type("text/plain");
