@@ -6,15 +6,14 @@ import eu.ammw.transfer.model.Transfer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,27 +29,30 @@ class InMemoryDatabaseServiceTest {
     private Connection connection;
 
     @Mock
-    private Statement statement;
+    private PreparedStatement statement;
 
-    @InjectMocks
     private InMemoryDatabaseService databaseService;
 
     @BeforeEach
     void setUp() throws SQLException {
-        when(connection.createStatement()).thenReturn(statement);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+        databaseService = new InMemoryDatabaseService(connection);
     }
 
     @Test
     void shouldGetHistory() throws SQLException {
         // GIVEN
         ResultSet resultSet = mock(ResultSet.class);
-        when(statement.executeQuery("SELECT id, account_from, account_to, amount FROM History WHERE account_from='"
-                + TEST_UUID + "' OR account_to='" + TEST_UUID + "';")).thenReturn(resultSet);
+        when(statement.executeQuery()).thenReturn(resultSet);
 
         // WHEN
         databaseService.getHistory(TEST_UUID);
 
         // THEN
+        verify(statement).clearParameters();
+        verify(statement).setString(1, TEST_UUID.toString());
+        verify(statement).setString(2, TEST_UUID.toString());
+        verifyNoMoreInteractions(statement);
         verify(resultSet).next();
     }
 
@@ -63,7 +65,12 @@ class InMemoryDatabaseServiceTest {
         databaseService.createAccount(account);
 
         // THEN
-        verify(statement).executeUpdate("INSERT INTO Accounts VALUES ('" + TEST_UUID + "', 'Test Account', 0);");
+        verify(statement).clearParameters();
+        verify(statement).setString(1, TEST_UUID.toString());
+        verify(statement).setString(2, "Test Account");
+        verify(statement).setBigDecimal(3, BigDecimal.ZERO);
+        verify(statement).executeUpdate();
+        verifyNoMoreInteractions(statement);
     }
 
     @Test
@@ -75,22 +82,28 @@ class InMemoryDatabaseServiceTest {
         databaseService.updateAccount(account);
 
         // THEN
-        verify(statement).executeUpdate("UPDATE Accounts SET name='Test Account', balance=1 WHERE id='"
-                + TEST_UUID + "';");
+        verify(statement).clearParameters();
+        verify(statement).setString(1, "Test Account");
+        verify(statement).setBigDecimal(2, BigDecimal.ONE);
+        verify(statement).setString(3, TEST_UUID.toString());
+        verify(statement).executeUpdate();
+        verifyNoMoreInteractions(statement);
     }
 
     @Test
     void shouldGetAccountById() throws SQLException {
         // GIVEN
         ResultSet resultSet = mock(ResultSet.class);
-        when(statement.executeQuery("SELECT id, name, balance FROM Accounts WHERE id='"
-                + TEST_UUID + "';")).thenReturn(resultSet);
+        when(statement.executeQuery()).thenReturn(resultSet);
 
         // WHEN
         Optional<Account> result = databaseService.getAccount(TEST_UUID);
 
         // THEN
         verify(resultSet).next();
+        verify(statement).clearParameters();
+        verify(statement).setString(1, TEST_UUID.toString());
+        verifyNoMoreInteractions(statement);
         assertThat(result).isEmpty();
     }
 
@@ -101,8 +114,7 @@ class InMemoryDatabaseServiceTest {
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getString(anyString())).thenReturn(TEST_UUID.toString());
         when(resultSet.getBigDecimal(anyString())).thenReturn(BigDecimal.ONE);
-        when(statement.executeQuery("SELECT id, name, balance FROM Accounts WHERE id='"
-                + TEST_UUID + "';")).thenReturn(resultSet);
+        when(statement.executeQuery()).thenReturn(resultSet);
 
         // WHEN
         DatabaseServiceException exception = assertThrows(DatabaseServiceException.class,
@@ -116,12 +128,13 @@ class InMemoryDatabaseServiceTest {
     void shouldGetAllAccounts() throws SQLException {
         // GIVEN
         ResultSet resultSet = mock(ResultSet.class);
-        when(statement.executeQuery("SELECT id, name, balance FROM Accounts;")).thenReturn(resultSet);
+        when(statement.executeQuery()).thenReturn(resultSet);
 
         // WHEN
         databaseService.getAllAccounts();
 
         // THEN
+        verifyNoMoreInteractions(statement);
         verify(resultSet).next();
     }
 
@@ -134,7 +147,12 @@ class InMemoryDatabaseServiceTest {
         databaseService.createTransfer(transfer);
 
         // THEN
-        verify(statement).executeUpdate("INSERT INTO History VALUES ('" +
-                TEST_UUID + "', '" + transfer.getFrom() + "', '" + transfer.getTo() + "', 1);");
+        verify(statement).clearParameters();
+        verify(statement).setString(1, TEST_UUID.toString());
+        verify(statement).setString(2, transfer.getFrom().toString());
+        verify(statement).setString(3, transfer.getTo().toString());
+        verify(statement).setBigDecimal(4, BigDecimal.ONE);
+        verify(statement).executeUpdate();
+        verifyNoMoreInteractions(statement);
     }
 }
